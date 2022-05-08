@@ -20,6 +20,7 @@ BLUE = (0, 0, 255)
 # Create the screen
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
+
 # Create classes
 class Sprite():
     def __init__(self, x, y, width, height, screen):
@@ -35,7 +36,7 @@ class Sprite():
         self.dy = 0
 
         self.color = WHITE
-        self.friction = 0.8
+        self.friction = 1 
 
         self.screen = screen
 
@@ -69,16 +70,19 @@ class Player(Sprite):
 
     def move(self):
         self.goto(self.x + self.dx, self.y + self.dy)
+        self.dx = self.dx * self.friction
         self.dy += GRAVITY
 
     def jump(self):
         self.dy -= 24
 
     def left(self):
-        self.dx -= 6
+        self.dx -= 8
+        self.friction = 1
 
     def right(self):
-        self.dx += 6
+        self.dx += 8
+        self.friction = 1
         
 # Create font
 
@@ -88,22 +92,35 @@ class Player(Sprite):
 player = Player(600, 0, 20, 40, SCREEN)
 blocks = []
 blocks.append(Sprite(600, 200, 400, 20, SCREEN)) 
+blocks.append(Sprite(20, 600, 400, 20, SCREEN))
+blocks.append(Sprite(1180, 600, 400, 20, SCREEN))
+blocks.append(Sprite(600, 500, 500, 20, SCREEN))
 
 # Main game loop
 
 while True:
+    # go over all events that have happened in the frame
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT:   # quit application
             sys.exit()
             
         # Keyboard Events
         if event.type == pygame.KEYDOWN:
-            if event.type == pygame.K_UP or event.type == pygame.K_SPACE:
+            print("keydown!")
+            if event.key == pygame.K_UP or event.key == pygame.K_SPACE:
                 player.jump()
-            elif event.type == pygame.K_LEFT:
+            elif event.key == pygame.K_LEFT:
                 player.left()
-            elif event.type == pygame.K_RIGHT:
+            elif event.key == pygame.K_RIGHT:
                 player.right()
+                
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT:
+                player.friction = 0.9
+            if event.key == pygame.K_LEFT:
+                player.friction = 0.9
+
+                
 
     # Move hte player
     player.move()
@@ -112,12 +129,16 @@ while True:
     if player.y > 600:
       player.goto(600, 0)
       player.dy = 0
+      player.dx = 0
 
     # Check for player collisions with blocks
     for block in blocks:
         if player.rect.colliderect(block):
             player.dy = 0 # Set vel y to 0
             player.goto(player.x, block.y - player.height // 2 - block.height // 2) # Make player.y be ontop of block
+            
+            
+            # player.dx = player.dx*player.friction
             break
 
 
